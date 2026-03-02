@@ -1,0 +1,170 @@
+#!/bin/bash
+set -e
+
+echo "🔧 Opencode Custom Commands Installer"
+echo "====================================="
+echo ""
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to install dependencies based on OS
+install_dependencies() {
+    echo "📦 Installing missing dependencies..."
+    
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux
+        if command_exists apt-get; then
+            # Debian/Ubuntu
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq curl bc python3
+        elif command_exists yum; then
+            # RHEL/CentOS/Fedora
+            sudo yum install -y curl bc python3
+        elif command_exists pacman; then
+            # Arch Linux
+            sudo pacman -S --noconfirm curl bc python
+        elif command_exists dnf; then
+            # Fedora
+            sudo dnf install -y curl bc python3
+        else
+            echo -e "${YELLOW}⚠️  Could not detect package manager. Please install curl, bc, and python3 manually.${NC}"
+            exit 1
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        if command_exists brew; then
+            brew install curl coreutils python3
+        else
+            echo -e "${YELLOW}⚠️  Homebrew not found. Please install Homebrew first: https://brew.sh${NC}"
+            echo -e "${YELLOW}   Then run: brew install curl coreutils python3${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Unknown OS. Please install curl, bc, and python3 manually.${NC}"
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✅ Dependencies installed${NC}"
+}
+
+# 1. Check opencode CLI
+if ! command_exists opencode; then
+    echo -e "${RED}❌ Error: opencode CLI not found${NC}"
+    echo ""
+    echo "Please install opencode first:"
+    echo "  https://docs.opencode.ai"
+    exit 1
+fi
+echo -e "${GREEN}✅ opencode CLI found${NC}"
+
+# 2. Check and install dependencies
+MISSING_DEPS=()
+
+if ! command_exists curl; then
+    MISSING_DEPS+=("curl")
+fi
+
+if ! command_exists bc; then
+    MISSING_DEPS+=("bc")
+fi
+
+if ! command_exists python3; then
+    MISSING_DEPS+=("python3")
+fi
+
+if [ ${#MISSING_DEPS[@]} -gt 0 ]; then
+    echo -e "${YELLOW}⚠️  Missing dependencies: ${MISSING_DEPS[*]}${NC}"
+    
+    read -p "Install automatically? (y/N): " -n 1 -r
+    echo
+    if [[ \$REPLY =~ ^[Yy]$ ]]; then
+        install_dependencies
+    else
+        echo "Please install the missing dependencies manually and re-run."
+        exit 1
+    fi
+else
+    echo -e "${GREEN}✅ All dependencies found${NC}"
+fi
+
+# 3. Create directories
+OPENCODE_CMD_DIR="\$HOME/.config/opencode/commands"
+LOCAL_BIN_DIR="\$HOME/.local/bin"
+
+echo ""
+echo "📁 Creating directories..."
+mkdir -p "\$OPENCODE_CMD_DIR"
+mkdir -p "\$LOCAL_BIN_DIR"
+echo -e "${GREEN}✅ Directories created${NC}"
+
+# 4. Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# 5. Copy commands
+echo ""
+echo "📋 Installing commands..."
+if [ -d "\$SCRIPT_DIR/commands" ]; then
+    cp "\$SCRIPT_DIR/commands/"*.md "\$OPENCODE_CMD_DIR/" 2>/dev/null || true
+    echo -e "${GREEN}✅ Commands installed${NC}"
+else
+    echo -e "${YELLOW}⚠️  Commands directory not found. You may need to copy manually.${NC}"
+fi
+
+# 6. Copy scripts
+echo ""
+echo "🔧 Installing helper scripts..."
+if [ -d "\$SCRIPT_DIR/scripts" ]; then
+    cp "\$SCRIPT_DIR/scripts/"* "\$LOCAL_BIN_DIR/" 2>/dev/null || true
+    chmod +x "\$LOCAL_BIN_DIR/check-credits.sh" 2>/dev/null || true
+    echo -e "${GREEN}✅ Scripts installed${NC}"
+else
+    echo -e "${YELLOW}⚠️  Scripts directory not found. You may need to copy manually.${NC}"
+fi
+
+# 7. Verify installation
+echo ""
+echo "🔍 Verifying installation..."
+
+INSTALLED_CMDS=0
+if [ -f "\$OPENCODE_CMD_DIR/recommend-anime.md" ]; then
+    echo -e "${GREEN}✓ recommend-anime${NC}"
+    INSTALLED_CMDS=$((INSTALLED_CMDS + 1))
+fi
+
+if [ -f "\$OPENCODE_CMD_DIR/credits.md" ]; then
+    echo -e "${GREEN}✓ credits${NC}"
+    INSTALLED_CMDS=$((INSTALLED_CMDS + 1))
+fi
+
+if [ -f "\$LOCAL_BIN_DIR/check-credits.sh" ]; then
+    echo -e "${GREEN}✓ check-credits.sh${NC}"
+fi
+
+echo ""
+echo "====================================="
+if [ \$INSTALLED_CMDS -gt 0 ]; then
+    echo -e "${GREEN}🎉 Installation complete!${NC}"
+    echo ""
+    echo "Installed \$INSTALLED_CMDS custom command(s):"
+    echo "  • /recommend-anime - Get personalized anime recommendations"
+    echo "  • /credits - Check OpenRouter credits"
+    echo ""
+    echo "Usage:"
+    echo "  Type /recommend-anime or /credits in opencode"
+    echo ""
+    echo "To add your own commands:"
+    echo "  1. Create a .md file in ~/.config/opencode/commands/"
+    echo "  2. See README.md for command format examples"
+else
+    echo -e "${YELLOW}⚠️  No commands were installed. Please check the source files.${NC}"
+    exit 1
+fi
