@@ -20,21 +20,30 @@ command_exists() {
 install_dependencies() {
     echo "Installing missing dependencies..."
     
+    SUDO=""
+    if [ "$EUID" -ne 0 ]; then
+        if command_exists sudo; then
+            SUDO="sudo"
+        else
+            echo -e "${YELLOW}Warning: Installation may fail because 'sudo' is not available.${NC}"
+        fi
+    fi
+    
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         # Linux
         if command_exists apt-get; then
             # Debian/Ubuntu
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq curl bc python3
+            $SUDO apt-get update -qq
+            $SUDO apt-get install -y -qq curl bc python3
         elif command_exists yum; then
             # RHEL/CentOS/Fedora
-            sudo yum install -y curl bc python3
+            $SUDO yum install -y curl bc python3
         elif command_exists pacman; then
             # Arch Linux
-            sudo pacman -S --noconfirm curl bc python
+            $SUDO pacman -S --noconfirm curl bc python
         elif command_exists dnf; then
             # Fedora
-            sudo dnf install -y curl bc python3
+            $SUDO dnf install -y curl bc python3
         else
             echo -e "${YELLOW}Warning: Could not detect package manager. Please install curl, bc, and python3 manually.${NC}"
             exit 1
@@ -118,7 +127,7 @@ if [ -d "$SCRIPT_DIR/commands" ]; then
 else
     echo "Local source not found, downloading commands from GitHub..."
     for cmd in recommend-anime.md recommend-movie.md credits.md commit-msg.md; do
-        curl -fsSL "https://raw.githubusercontent.com/rahul1raman/opencode-custom-commands/main/commands/$cmd" -o "$OPENCODE_CMD_DIR/$cmd"
+        curl -fsSL "https://raw.githubusercontent.com/rahul1raman/opencode-custom-commands/main/commands/$cmd" -o "$OPENCODE_CMD_DIR/$cmd" || echo -e "${YELLOW}Warning: Failed to download $cmd${NC}"
     done
     echo -e "${GREEN}[OK] Commands downloaded and installed${NC}"
 fi
@@ -132,8 +141,8 @@ if [ -d "$SCRIPT_DIR/scripts" ]; then
     echo -e "${GREEN}[OK] Scripts installed from local source${NC}"
 else
     echo "Local source not found, downloading scripts from GitHub..."
-    curl -fsSL "https://raw.githubusercontent.com/rahul1raman/opencode-custom-commands/main/scripts/check-credits.sh" -o "$LOCAL_BIN_DIR/check-credits.sh"
-    chmod +x "$LOCAL_BIN_DIR/check-credits.sh"
+    curl -fsSL "https://raw.githubusercontent.com/rahul1raman/opencode-custom-commands/main/scripts/check-credits.sh" -o "$LOCAL_BIN_DIR/check-credits.sh" || echo -e "${YELLOW}Warning: Failed to download check-credits.sh${NC}"
+    chmod +x "$LOCAL_BIN_DIR/check-credits.sh" 2>/dev/null || true
     echo -e "${GREEN}[OK] Scripts downloaded and installed${NC}"
 fi
 
