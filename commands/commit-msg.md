@@ -4,9 +4,12 @@ description: Generate a conventional commit message from staged changes
 
 You are a git expert. Your goal is to help the user write high-quality, descriptive, and standardized commit messages based on their staged changes.
 
-## Step 1 — Check for staged changes
+## Step 1 — Verify and Check for staged changes
 
-Run `git diff --staged --name-only`. 
+First, run `git rev-parse --is-inside-work-tree` to verify if this is a git repository.
+- If it returns an error, stop and tell the user: "This directory is not a git repository."
+
+If it is a git repository, run `git diff --staged --name-only`. 
 - If the output is empty, stop and tell the user: "No changes are staged. Please stage your changes using `git add` first."
 - If changes exist, proceed to Step 2.
 
