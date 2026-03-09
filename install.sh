@@ -126,7 +126,7 @@ if [ -d "$SCRIPT_DIR/commands" ]; then
     echo -e "${GREEN}[OK] Commands installed from local source${NC}"
 else
     echo "Local source not found, downloading commands from GitHub..."
-    for cmd in recommend-anime.md recommend-movie.md credits.md commit-msg.md; do
+    for cmd in recommend-anime.md recommend-movie.md credits.md commit-msg.md code-review.md; do
         curl -fsSL "https://raw.githubusercontent.com/rahul1raman/opencode-custom-commands/main/commands/$cmd" -o "$OPENCODE_CMD_DIR/$cmd" || echo -e "${YELLOW}Warning: Failed to download $cmd${NC}"
     done
     echo -e "${GREEN}[OK] Commands downloaded and installed${NC}"
@@ -171,6 +171,11 @@ if [ -f "$OPENCODE_CMD_DIR/commit-msg.md" ]; then
     INSTALLED_CMDS=$((INSTALLED_CMDS + 1))
 fi
 
+if [ -f "$OPENCODE_CMD_DIR/code-review.md" ]; then
+    echo -e "${GREEN}[OK] code-review${NC}"
+    INSTALLED_CMDS=$((INSTALLED_CMDS + 1))
+fi
+
 if [ -f "$LOCAL_BIN_DIR/check-credits.sh" ]; then
     echo -e "${GREEN}[OK] check-credits.sh${NC}"
 fi
@@ -183,11 +188,12 @@ if [ $INSTALLED_CMDS -gt 0 ]; then
     echo "Installed $INSTALLED_CMDS custom command(s):"
     echo "  - /recommend-anime - Get personalized anime recommendations"
     echo "  - /recommend-movie - Get personalized movie recommendations"
+    echo "  - /code-review    - Perform comprehensive code reviews"
     echo "  - /commit-msg     - Generate conventional commit messages"
     echo "  - /credits         - Check OpenRouter credits"
     echo ""
     echo "Usage:"
-    echo "  Type /recommend-anime, /recommend-movie, /commit-msg or /credits in opencode"
+    echo "  Type /recommend-anime, /recommend-movie, /code-review, /commit-msg or /credits in opencode"
     echo ""
     echo "To add your own commands:"
     echo "  1. Create a .md file in ~/.config/opencode/commands/"
