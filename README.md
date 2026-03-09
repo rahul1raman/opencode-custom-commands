@@ -56,6 +56,30 @@ Create `~/anime_watched.md` with this format:
 - Steins;Gate
 ```
 
+### /recommend-movie
+
+Get personalized movie recommendations based on your taste profile.
+
+**Features:**
+- Reads from `~/movie_watched.md` to avoid recommending already-watched movies
+- Focuses on high-quality cinema across various genres
+- Supports real-time filtering and feedback
+- Learns from your preferences (Sci-Fi, Crime, Thrillers, etc.)
+
+**Usage:**
+```
+/recommend-movie
+```
+
+**First-time setup:**
+Create `~/movie_watched.md` with this format:
+```markdown
+## Watched
+- Inception
+- The Matrix
+- Parasite
+```
+
 ### /credits
 
 Check your remaining credits for OpenRouter.
