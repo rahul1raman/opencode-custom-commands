@@ -31,6 +31,18 @@ curl -fsSL https://raw.githubusercontent.com/rahul1raman/opencode-custom-command
 
 ### Development
 
+#### `/code-review`
+Perform a comprehensive, senior-level code review on a file or snippet.
+
+- **Features:**
+  - Identifies security vulnerabilities and performance bottlenecks.
+  - Suggests logic improvements and edge case handling.
+  - Outputs structured feedback (High-Level Summary, Critical Issues, Nitpicks).
+- **Usage:**
+  ```
+  /code-review
+  ```
+
 #### `/commit-msg`
 Automatically generates a high-quality commit message based on your staged changes following the **Conventional Commits** specification.
 
